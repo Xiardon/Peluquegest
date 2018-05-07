@@ -8,7 +8,6 @@ package clases;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -52,9 +51,8 @@ public class BaseDatos {
 
         } catch (Exception ex) {
             throw new Exception(ex.getMessage());
-        } finally {
-        }
 
     }
     //</editor-fold>
+    }
 }
