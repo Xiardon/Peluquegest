@@ -13,9 +13,13 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.scene.paint.Color;
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JOptionPane;
+import javax.swing.RowFilter;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.JTableHeader;
+import javax.swing.table.TableRowSorter;
 
 /**
  *
@@ -24,10 +28,11 @@ import javax.swing.table.JTableHeader;
 public class ListaServicios extends javax.swing.JDialog {
 
     private BaseDatos db;
+
     /**
      * Creates new form ListaServicios
      */
-    public ListaServicios(java.awt.Frame parent, boolean modal) throws Exception  {
+    public ListaServicios(java.awt.Frame parent, boolean modal) throws Exception {
         super(parent, modal);
         initComponents();
         modeloTabla = (DefaultTableModel) tablaServicios.getModel(); //Obtenemos el modelo de la tabla
@@ -36,16 +41,63 @@ public class ListaServicios extends javax.swing.JDialog {
         crearTabla();
         listarServicios();
     }
-    
+
+    /**
+     * Metodo para buscar en la tabla
+     */
+    private void buscarDatoTabla() {
+        TableRowSorter filtro = new TableRowSorter(modeloTabla); //Creo el filtro
+        tablaServicios.setRowSorter(filtro); //Se lo añado a la tabla
+        filtro.setRowFilter(RowFilter.regexFilter(txtBuscar.getText(), 0)); //Le paso los parametros a filtrar
+    }
+
     /**
      * Metodo para mejorar la estetica de la tabla
      */
-    private void crearTabla(){
+    private void crearTabla() {
         tablaServicios.getTableHeader().setFont(new Font("Garamond", Font.BOLD, 12));
         tablaServicios.getTableHeader().setForeground(java.awt.Color.darkGray);
-        
+
     }
-    
+
+    /**
+     * Metodo para eliminar un servicio de la tabla y la base de datos
+     */
+    private void eliminarServicio() {
+        try {
+            if (tablaServicios.getSelectedRow() != -1) { //Compruebo que tengo seleccionada una fila
+                String nombreservicio = tablaServicios.getValueAt(tablaServicios.getSelectedRow(), 0).toString();
+
+                if (db.eliminarServicio(nombreservicio) != 0) {
+                    modeloTabla.removeRow(tablaServicios.getSelectedRow());
+                    JOptionPane.showMessageDialog(null, "Se ha eliminado el servicio", "Elimninar servicio", JOptionPane.INFORMATION_MESSAGE);
+                }
+            } else {
+                JOptionPane.showMessageDialog(null, "No se ha seleccionado ningún servcio de la lista", "Error al eliminar", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    /**
+     * Metodo para cargar la lista de servicios en la tabla
+     */
+    private void listarServicios() throws Exception {
+        try {
+            ResultSet resultados = db.consultarServicios();
+            Object datos[] = new Object[3]; //Numero de campos(columnas) de la consulta
+
+            while (resultados.next()) {
+                for (int i = 0; i < 3; i++) {
+                    datos[i] = resultados.getObject(i + 1); //En el resulset el indice empieza en 1
+                }
+                modeloTabla.addRow(datos);
+            }
+        }catch (Exception e) {
+              JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -59,10 +111,10 @@ public class ListaServicios extends javax.swing.JDialog {
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tablaServicios = new javax.swing.JTable();
-        jTextField1 = new javax.swing.JTextField();
+        txtBuscar = new javax.swing.JTextField();
         jLabel1 = new javax.swing.JLabel();
         jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        btnEliminar = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Peluquegest-Añadir servicio");
@@ -105,8 +157,13 @@ public class ListaServicios extends javax.swing.JDialog {
         tablaServicios.setOpaque(false);
         jScrollPane1.setViewportView(tablaServicios);
 
-        jTextField1.setFont(new java.awt.Font("Trebuchet MS", 0, 14)); // NOI18N
-        jTextField1.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(51, 51, 255), null));
+        txtBuscar.setFont(new java.awt.Font("Trebuchet MS", 0, 14)); // NOI18N
+        txtBuscar.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(51, 51, 255), null));
+        txtBuscar.addKeyListener(new java.awt.event.KeyAdapter() {
+            public void keyReleased(java.awt.event.KeyEvent evt) {
+                teclaPulsada(evt);
+            }
+        });
 
         jLabel1.setFont(new java.awt.Font("Yu Gothic", 1, 14)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
@@ -119,12 +176,17 @@ public class ListaServicios extends javax.swing.JDialog {
         jButton1.setText("Añadir servicio");
         jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
 
-        jButton2.setBackground(new java.awt.Color(204, 204, 255));
-        jButton2.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
-        jButton2.setForeground(new java.awt.Color(102, 0, 204));
-        jButton2.setText("Eliminar servicio");
-        jButton2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
-        jButton2.setDebugGraphicsOptions(javax.swing.DebugGraphics.NONE_OPTION);
+        btnEliminar.setBackground(new java.awt.Color(204, 204, 255));
+        btnEliminar.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
+        btnEliminar.setForeground(new java.awt.Color(102, 0, 204));
+        btnEliminar.setText("Eliminar servicio");
+        btnEliminar.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        btnEliminar.setDebugGraphicsOptions(javax.swing.DebugGraphics.NONE_OPTION);
+        btnEliminar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonPulsado(evt);
+            }
+        });
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
@@ -135,13 +197,13 @@ public class ListaServicios extends javax.swing.JDialog {
                 .addGap(66, 66, 66)
                 .addComponent(jLabel1)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(144, 144, 144))
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 140, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         jPanel1Layout.setVerticalGroup(
@@ -149,13 +211,13 @@ public class ListaServicios extends javax.swing.JDialog {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(14, 14, 14)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(txtBuscar, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1))
                 .addGap(18, 18, 18)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 304, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton2, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)
+                    .addComponent(btnEliminar, javax.swing.GroupLayout.DEFAULT_SIZE, 54, Short.MAX_VALUE)
                     .addComponent(jButton1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
         );
@@ -174,6 +236,20 @@ public class ListaServicios extends javax.swing.JDialog {
         pack();
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
+
+    private void teclaPulsada(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_teclaPulsada
+        // TODO add your handling code here:
+        buscarDatoTabla();
+    }//GEN-LAST:event_teclaPulsada
+
+    private void botonPulsado(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonPulsado
+        // TODO add your handling code here:
+        JButton boton = (JButton) evt.getSource();
+        switch (boton.getText()) {
+            case "Eliminar servicio":
+                eliminarServicio();
+        }
+    }//GEN-LAST:event_botonPulsado
 
     /**
      * @param args the command line arguments
@@ -220,30 +296,16 @@ public class ListaServicios extends javax.swing.JDialog {
             }
         });
     }
-    
-    /**
-     * Metodo para cargar la lista de servicios en la tabla
-     */
-    private void listarServicios() throws Exception{
-        ResultSet resultados = db.consultarServicios();
-        Object datos[] = new Object[3]; //Numero de campos(columnas) de la consulta
-        
-        while(resultados.next()){
-            for(int i = 0; i < 3; i++){
-                datos[i] = resultados.getObject(i + 1); //En el resulset el indice empieza en 1
-            }
-            modeloTabla.addRow(datos);
-        }
-    }
+
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnEliminar;
     private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JTextField jTextField1;
     private javax.swing.JTable tablaServicios;
+    private javax.swing.JTextField txtBuscar;
     // End of variables declaration//GEN-END:variables
     private DefaultTableModel modeloTabla;
 }

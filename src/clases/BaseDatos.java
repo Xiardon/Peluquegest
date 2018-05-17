@@ -45,6 +45,7 @@ public class BaseDatos {
      */
     public ResultSet consultarServicios() throws Exception {
         try {
+            consulta.close();
             String c = "select nombre, precio, duracion from SERVICIOS";
             resultado = consulta.executeQuery(c);
             return resultado;
@@ -52,7 +53,21 @@ public class BaseDatos {
         } catch (Exception ex) {
             throw new Exception(ex.getMessage());
 
+        }
+    }
+
+    public int eliminarServicio(String nombre) throws Exception {
+        try {
+            String c = "delete from SERVICIOS where nombre = '" + nombre + "'";
+            int resultado = consulta.executeUpdate(c);
+            consulta.close();
+            return resultado;
+
+        } catch (Exception ex) {
+            throw new Exception(ex.getMessage());
+
+        }
+
     }
     //</editor-fold>
-    }
 }
