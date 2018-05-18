@@ -123,7 +123,7 @@ public class ListaServicios extends javax.swing.JDialog {
         setResizable(false);
 
         jPanel1.setBackground(new java.awt.Color(230, 230, 235));
-        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(204, 204, 255), 9), "Lista de Servicios", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.ABOVE_TOP, new java.awt.Font("Century Gothic", 0, 36), new java.awt.Color(51, 51, 255))); // NOI18N
+        jPanel1.setBorder(javax.swing.BorderFactory.createTitledBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 204, 255), 9, true), "Lista de Servicios", javax.swing.border.TitledBorder.LEFT, javax.swing.border.TitledBorder.ABOVE_TOP, new java.awt.Font("Century Gothic", 0, 36), new java.awt.Color(51, 51, 255))); // NOI18N
         jPanel1.setForeground(new java.awt.Color(153, 204, 255));
         jPanel1.setToolTipText("");
 
@@ -136,7 +136,7 @@ public class ListaServicios extends javax.swing.JDialog {
 
             },
             new String [] {
-                "Nombre", "Precio(en Euros)", "Duracion(en minutos)"
+                "Servicio", "Precio(en Euros)", "Duración"
             }
         ) {
             Class[] types = new Class [] {

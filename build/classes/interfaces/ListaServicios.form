@@ -50,7 +50,7 @@
           <Border info="org.netbeans.modules.form.compat2.border.TitledBorderInfo">
             <TitledBorder justification="1" position="1" title="Lista de Servicios">
               <Border PropertyName="innerBorder" info="org.netbeans.modules.form.compat2.border.LineBorderInfo">
-                <LineBorder thickness="9">
+                <LineBorder roundedCorners="true" thickness="9">
                   <Color PropertyName="color" blue="ff" green="cc" red="cc" type="rgb"/>
                 </LineBorder>
               </Border>
@@ -133,9 +133,9 @@
                 </Property>
                 <Property name="model" type="javax.swing.table.TableModel" editor="org.netbeans.modules.form.editors2.TableModelEditor">
                   <Table columnCount="3" rowCount="0">
-                    <Column editable="false" title="Nombre" type="java.lang.String"/>
+                    <Column editable="false" title="Servicio" type="java.lang.String"/>
                     <Column editable="false" title="Precio(en Euros)" type="java.lang.Integer"/>
-                    <Column editable="false" title="Duracion(en minutos)" type="java.lang.Integer"/>
+                    <Column editable="false" title="Duraci&#xf3;n" type="java.lang.Integer"/>
                   </Table>
                 </Property>
                 <Property name="opaque" type="boolean" value="false"/>
