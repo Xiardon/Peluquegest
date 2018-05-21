@@ -6,6 +6,7 @@
 package interfaces;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.UIManager;
 
@@ -15,22 +16,60 @@ import javax.swing.UIManager;
  */
 public class CrearServicio extends javax.swing.JDialog {
 
+    private boolean aceptar; //Variable para saber si hemos aceptado la creacion de un nuevo servicio
+
     /**
      * Creates new form CrearServicio
      */
     public CrearServicio(java.awt.Frame parent, boolean modal) {
         super(parent, modal);
+        aceptar = false;
         this.setIconImage(new ImageIcon("src/imagenes/Icono.png").getImage());
         initComponents();
     }
 
+    /**
+     * Metodo para validar que se intoducen solo los caracteres permitidos
+     *
+     * @param tecla
+     * @return
+     */
     private boolean validarTeclaPulsada(char tecla) {
-        boolean numero = true;
-        if (Character.isLetter(tecla)) {
-            numero = false;
+        boolean numero = false;
+        if (Character.isDigit(tecla) || tecla == '.' || tecla == ',') {
+            numero = true;
+        }else{
             JOptionPane.showMessageDialog(null, "Solo se perimite introducir numeros ", "Error", JOptionPane.WARNING_MESSAGE);
         }
         return numero;
+    }
+
+    public String getNombreServicio() {
+        return nomSer.getText();
+    }
+
+    public float getPrecioServicio() {
+        String texto = preSer.getText();
+        texto = texto.replace(",", ".");
+        return Float.parseFloat(texto);
+    }
+
+    public String getDuracionServicio() {
+        return comDur.getSelectedItem().toString();
+    }
+
+    public boolean getAceptar() {
+        return aceptar;
+    }
+
+    private void aceptarServicio() {
+        if (!nomSer.getText().equals("") && !preSer.getText().equals("")) {
+            this.setVisible(false);
+            aceptar = true;
+        }else{
+            JOptionPane.showMessageDialog(null, "Faltan datos por introducir", "Crear nuevo servicio", JOptionPane.ERROR_MESSAGE);
+        }
+
     }
 
     /**
@@ -46,11 +85,11 @@ public class CrearServicio extends javax.swing.JDialog {
         jLabel1 = new javax.swing.JLabel();
         nomSer = new javax.swing.JTextField();
         jLabel2 = new javax.swing.JLabel();
-        jTextField2 = new javax.swing.JTextField();
+        preSer = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
-        jComboBox1 = new javax.swing.JComboBox<>();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
+        comDur = new javax.swing.JComboBox<>();
+        btnCancelar = new javax.swing.JButton();
+        btnAce = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Peluquegest-Nuevo servicio");
@@ -63,13 +102,15 @@ public class CrearServicio extends javax.swing.JDialog {
         jLabel1.setText("Nombre del servicio");
 
         nomSer.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
+        nomSer.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(153, 255, 153), null));
 
         jLabel2.setFont(new java.awt.Font("Yu Gothic", 1, 14)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(0, 102, 51));
         jLabel2.setText("Precio del servicio(€)");
 
-        jTextField2.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
-        jTextField2.addKeyListener(new java.awt.event.KeyAdapter() {
+        preSer.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
+        preSer.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(153, 255, 153), null));
+        preSer.addKeyListener(new java.awt.event.KeyAdapter() {
             public void keyTyped(java.awt.event.KeyEvent evt) {
                 teclaPulsada(evt);
             }
@@ -79,21 +120,32 @@ public class CrearServicio extends javax.swing.JDialog {
         jLabel3.setForeground(new java.awt.Color(0, 102, 51));
         jLabel3.setText("Duración del servicio");
 
-        jComboBox1.setEditable(true);
-        jComboBox1.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
-        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "30 minutos", "1 hora", "1 hora 30 minutos", "2 horas", "2 horas 30 minutos", "3 horas", "3 horas 30 minutos", "4 horas" }));
+        comDur.setEditable(true);
+        comDur.setFont(new java.awt.Font("Trebuchet MS", 0, 12)); // NOI18N
+        comDur.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "30 minutos", "1 hora", "1 hora 30 minutos", "2 horas", "2 horas 30 minutos", "3 horas", "3 horas 30 minutos", "4 horas" }));
+        comDur.setBorder(javax.swing.BorderFactory.createEtchedBorder(new java.awt.Color(153, 255, 153), null));
 
-        jButton1.setBackground(new java.awt.Color(204, 204, 255));
-        jButton1.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(0, 153, 153));
-        jButton1.setText("Cancelar");
-        jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        btnCancelar.setBackground(new java.awt.Color(204, 204, 255));
+        btnCancelar.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
+        btnCancelar.setForeground(new java.awt.Color(0, 153, 153));
+        btnCancelar.setText("Cancelar");
+        btnCancelar.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        btnCancelar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonPulsado(evt);
+            }
+        });
 
-        jButton2.setBackground(new java.awt.Color(204, 204, 255));
-        jButton2.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
-        jButton2.setForeground(new java.awt.Color(0, 153, 153));
-        jButton2.setText("Aceptar");
-        jButton2.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        btnAce.setBackground(new java.awt.Color(204, 204, 255));
+        btnAce.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
+        btnAce.setForeground(new java.awt.Color(0, 153, 153));
+        btnAce.setText("Aceptar");
+        btnAce.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        btnAce.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonPulsado(evt);
+            }
+        });
 
         javax.swing.GroupLayout fondoLayout = new javax.swing.GroupLayout(fondo);
         fondo.setLayout(fondoLayout);
@@ -105,11 +157,11 @@ public class CrearServicio extends javax.swing.JDialog {
                     .addGroup(fondoLayout.createSequentialGroup()
                         .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jComboBox1, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(comDur, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                     .addGroup(fondoLayout.createSequentialGroup()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(preSer, javax.swing.GroupLayout.PREFERRED_SIZE, 164, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(fondoLayout.createSequentialGroup()
                         .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 149, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -117,9 +169,9 @@ public class CrearServicio extends javax.swing.JDialog {
                 .addContainerGap(33, Short.MAX_VALUE))
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, fondoLayout.createSequentialGroup()
                 .addContainerGap()
-                .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnAce, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 130, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap())
         );
         fondoLayout.setVerticalGroup(
@@ -132,15 +184,15 @@ public class CrearServicio extends javax.swing.JDialog {
                 .addGap(18, 18, 18)
                 .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel2)
-                    .addComponent(jTextField2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(preSer, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel3)
-                    .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(comDur, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 77, Short.MAX_VALUE)
                 .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton2, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(btnCancelar, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(btnAce, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addContainerGap())
         );
 
@@ -156,6 +208,7 @@ public class CrearServicio extends javax.swing.JDialog {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void teclaPulsada(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_teclaPulsada
@@ -164,6 +217,21 @@ public class CrearServicio extends javax.swing.JDialog {
             evt.consume();
         }
     }//GEN-LAST:event_teclaPulsada
+
+    private void botonPulsado(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonPulsado
+        // TODO add your handling code here:
+        JButton btn = (JButton) evt.getSource();
+
+        switch (btn.getText()) {
+            case "Aceptar":
+                aceptarServicio();
+                break;
+            case "Cancelar":
+                this.setVisible(false);
+                break;
+        }
+
+    }//GEN-LAST:event_botonPulsado
 
     /**
      * @param args the command line arguments
@@ -208,14 +276,14 @@ public class CrearServicio extends javax.swing.JDialog {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton btnAce;
+    private javax.swing.JButton btnCancelar;
+    private javax.swing.JComboBox<String> comDur;
     private javax.swing.JPanel fondo;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JComboBox<String> jComboBox1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
-    private javax.swing.JTextField jTextField2;
     private javax.swing.JTextField nomSer;
+    private javax.swing.JTextField preSer;
     // End of variables declaration//GEN-END:variables
 }

@@ -8,6 +8,7 @@ package clases;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -46,14 +47,23 @@ public class BaseDatos {
     public ResultSet consultarServicios() throws Exception {
         try {
             consulta.close();
-            String c = "select nombre, precio, duracion from SERVICIOS";
+            String c = "select nombre, printf('%.2f', precio), duracion from SERVICIOS";
             resultado = consulta.executeQuery(c);
             return resultado;
 
         } catch (Exception ex) {
             throw new Exception(ex.getMessage());
-
         }
+    }
+    
+    public void insertarNuevoServicio(String nombre, float precio, String duracion) throws Exception{
+        try {
+            consulta.executeUpdate("insert into SERVICIOS(nombre, precio, duracion) values ('" + nombre + "', '" + precio + "', '" + duracion + "')");
+                consulta.close();
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+        
     }
 
     public int eliminarServicio(String nombre) throws Exception {

@@ -43,6 +43,26 @@ public class ListaServicios extends javax.swing.JDialog {
     }
 
     /**
+     * Metodo para añadir un nuevo servicio a la base de datos y a la tabla
+     */
+    private void añadirNuevoServicio() {
+        try {
+            CrearServicio cs = new CrearServicio(null, rootPaneCheckingEnabled); //Creamos una nueva ventana para añadir el servicio.
+            cs.setVisible(true);
+                if (cs.getAceptar()) {
+                    cs.setVisible(false);
+                    db.insertarNuevoServicio(cs.getNombreServicio(), cs.getPrecioServicio(), cs.getDuracionServicio());
+                    listarServicios();
+                     JOptionPane.showMessageDialog(null, "Nuevo servicio creado con exito", "Añadir nuevo servicio", JOptionPane.INFORMATION_MESSAGE);
+                }  
+
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        }
+
+    }
+
+    /**
      * Metodo para buscar en la tabla
      */
     private void buscarDatoTabla() {
@@ -85,6 +105,7 @@ public class ListaServicios extends javax.swing.JDialog {
      */
     private void listarServicios() throws Exception {
         try {
+            modeloTabla.setRowCount(0); //Limpio la tabla
             ResultSet resultados = db.consultarServicios();
             Object datos[] = new Object[3]; //Numero de campos(columnas) de la consulta
 
@@ -94,8 +115,8 @@ public class ListaServicios extends javax.swing.JDialog {
                 }
                 modeloTabla.addRow(datos);
             }
-        }catch (Exception e) {
-              JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -175,6 +196,11 @@ public class ListaServicios extends javax.swing.JDialog {
         jButton1.setForeground(new java.awt.Color(102, 0, 204));
         jButton1.setText("Añadir servicio");
         jButton1.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        jButton1.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonPulsado(evt);
+            }
+        });
 
         btnEliminar.setBackground(new java.awt.Color(204, 204, 255));
         btnEliminar.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
@@ -248,6 +274,10 @@ public class ListaServicios extends javax.swing.JDialog {
         switch (boton.getText()) {
             case "Eliminar servicio":
                 eliminarServicio();
+                break;
+            case "Añadir servicio":
+                añadirNuevoServicio();
+                break;
         }
     }//GEN-LAST:event_botonPulsado
 
