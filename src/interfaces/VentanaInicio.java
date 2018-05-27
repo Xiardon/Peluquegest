@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.util.ArrayList;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
@@ -22,7 +23,7 @@ import javax.swing.table.DefaultTableModel;
  */
 public class VentanaInicio extends javax.swing.JFrame {
 
-    DefaultTableModel modeloTabla;
+    DefaultTableModel modeloTablaHoras;
 
     /**
      * Creates new form VentanaInicio
@@ -30,13 +31,27 @@ public class VentanaInicio extends javax.swing.JFrame {
     public VentanaInicio() {
         initComponents();
         //darEsteticaTablas();
-        modeloTabla = (DefaultTableModel) tablaHoras.getModel();
+        modeloTablaHoras = (DefaultTableModel) tablaHoras.getModel();
+    }
+    
+    /**
+     * Metodo para mantener enlazada la seleccion entre tablas
+     */
+    
+    private void sincornizarSeleccion(String nombreTabla){
+        if(nombreTabla == "tablaHoras"){
+            tablaTareas.changeSelection(tablaHoras.getSelectedRow(), 0, false, false); //Selecciona la misma fila en la otra tabla
+        }else{
+            tablaHoras.changeSelection(tablaTareas.getSelectedRow(), 0, false, false);
+        }
+            
     }
     
     private void darEsteticaTablas(){
         tablaHoras.getTableHeader().setFont(new Font("Garamond", Font.CENTER_BASELINE, 16)); 
         tablaHoras.getTableHeader().setBackground(Color.lightGray);
         tablaHoras.getTableHeader().setForeground(Color.RED);
+        
     }
 
     /**
@@ -69,11 +84,16 @@ public class VentanaInicio extends javax.swing.JFrame {
         jButton5 = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
+        tablaHoras = new javax.swing.JTable(){
+            public boolean isCellEditable(int rowIndex, int colIndex) {
+                return false; //Disallow the editing of any cell
+            }
+        };
         tablaHoras = new javax.swing.JTable();
         jCalendarCombo1 = new org.freixas.jcalendar.JCalendarCombo();
         jButton4 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
-        Tareas = new javax.swing.JTable();
+        tablaTareas = new javax.swing.JTable();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Peluquegest");
@@ -175,23 +195,36 @@ public class VentanaInicio extends javax.swing.JFrame {
             Class[] types = new Class [] {
                 java.lang.String.class
             };
+            boolean[] canEdit = new boolean [] {
+                false
+            };
 
             public Class getColumnClass(int columnIndex) {
                 return types [columnIndex];
             }
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
         });
         tablaHoras.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         tablaHoras.setAutoscrolls(false);
-        tablaHoras.setEnabled(false);
         tablaHoras.setFocusable(false);
+        tablaHoras.setName("tablaHoras"); // NOI18N
         tablaHoras.setRowHeight(20);
         tablaHoras.setRowMargin(0);
         tablaHoras.setShowVerticalLines(false);
         tablaHoras.setTableHeader(null);
+        tablaHoras.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                clickRaton(evt);
+            }
+        });
         jScrollPane1.setViewportView(tablaHoras);
 
         jCalendarCombo1.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(86, 86, 151), 5), "Calendario", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 11), new java.awt.Color(88, 88, 220))); // NOI18N
         jCalendarCombo1.setToolTipText("");
+        jCalendarCombo1.setTimeFont(new java.awt.Font("Century Gothic", 0, 14)); // NOI18N
         jCalendarCombo1.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 jCalendarCombo1ActionPerformed(evt);
@@ -204,8 +237,16 @@ public class VentanaInicio extends javax.swing.JFrame {
         jButton4.setText("<<");
         jButton4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
 
-        Tareas.setModel(new javax.swing.table.DefaultTableModel(
+        tablaTareas.setBackground(new java.awt.Color(153, 153, 153));
+        tablaTareas.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true));
+        tablaTareas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
+                {null},
+                {null},
+                {null},
+                {null},
+                {null},
+                {null},
                 {null},
                 {null},
                 {null},
@@ -230,8 +271,24 @@ public class VentanaInicio extends javax.swing.JFrame {
             new String [] {
                 "Tareas"
             }
-        ));
-        jScrollPane2.setViewportView(Tareas);
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
+        tablaTareas.setName("tablaTareas"); // NOI18N
+        tablaTareas.setRowHeight(20);
+        tablaTareas.setTableHeader(null);
+        tablaTareas.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                clickRaton(evt);
+            }
+        });
+        jScrollPane2.setViewportView(tablaTareas);
 
         javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
         jPanel2.setLayout(jPanel2Layout);
@@ -255,13 +312,10 @@ public class VentanaInicio extends javax.swing.JFrame {
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jCalendarCombo1, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(9, 9, 9)
-                        .addComponent(jScrollPane2))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 522, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
+                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 522, Short.MAX_VALUE)
+                    .addComponent(jScrollPane2)))
         );
 
         javax.swing.GroupLayout fondoLayout = new javax.swing.GroupLayout(fondo);
@@ -332,6 +386,14 @@ public class VentanaInicio extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_botonPulsado
 
+    private void clickRaton(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_clickRaton
+        // TODO add your handling code here:
+        JTable t = (JTable) evt.getSource();
+        
+        sincornizarSeleccion(t.getName());
+       
+    }//GEN-LAST:event_clickRaton
+
     /**
      * @param args the command line arguments
      */
@@ -368,7 +430,6 @@ public class VentanaInicio extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTable Tareas;
     private javax.swing.JPanel fondo;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
@@ -381,5 +442,6 @@ public class VentanaInicio extends javax.swing.JFrame {
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JTable tablaHoras;
+    private javax.swing.JTable tablaTareas;
     // End of variables declaration//GEN-END:variables
 }
