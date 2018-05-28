@@ -40,6 +40,44 @@ public class BaseDatos {
     }
 
     //<editor-fold desc="Metodos">
+    
+    /**
+     * Metodo para leer todas la tareas de la fecha que reciba por paramentro
+     */
+    public ResultSet leerTareas(String fecha) throws Exception {
+        try {
+            String c = "select horaInicio, nombreCliente, nombreServicio, duracion ";
+            c += "from TAREAS ";
+            c += "where fecha = '" + fecha + "'";
+            resultado = consulta.executeQuery(c);
+            return resultado;
+            
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
+    /**
+     * Metodo para añadir tareas a la base de datos
+     *
+     * @param fecha
+     * @param horaInicio
+     * @param nombreCliente
+     * @param nombreServicio
+     * @param precio
+     * @param duracion
+     */
+    public int añadirTarea(String fecha, String horaInicio, String nombreCliente, String nombreServicio, String precio, String duracion) throws Exception {
+        try {
+            String c = "insert into TAREAS values ('" + fecha + "', '" + horaInicio + "', '" + nombreCliente + "', '" + nombreServicio + "', '" + precio + "', '" + duracion + "')";
+            int resultado = consulta.executeUpdate(c);
+            return resultado;
+
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+    }
+
     /**
      *
      * @return
@@ -55,15 +93,15 @@ public class BaseDatos {
             throw new Exception(ex.getMessage());
         }
     }
-    
-    public void insertarNuevoServicio(String nombre, float precio, String duracion) throws Exception{
+
+    public void insertarNuevoServicio(String nombre, float precio, String duracion) throws Exception {
         try {
             consulta.executeUpdate("insert into SERVICIOS(nombre, precio, duracion) values ('" + nombre + "', '" + precio + "', '" + duracion + "')");
-                consulta.close();
+            consulta.close();
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
-        
+
     }
 
     public int eliminarServicio(String nombre) throws Exception {

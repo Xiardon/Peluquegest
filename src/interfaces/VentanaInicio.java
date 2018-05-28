@@ -5,17 +5,24 @@
  */
 package interfaces;
 
+import clases.BaseDatos;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Font;
+import java.sql.ResultSet;
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Date;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import jdk.nashorn.internal.parser.DateParser;
 
 /**
  *
@@ -24,33 +31,158 @@ import javax.swing.table.DefaultTableModel;
 public class VentanaInicio extends javax.swing.JFrame {
 
     DefaultTableModel modeloTablaHoras;
+    BaseDatos db;
+    ResultSet resultado;
+    DefaultTableModel modeloTablasTareas;
+    String fecha;
 
     /**
      * Creates new form VentanaInicio
      */
     public VentanaInicio() {
         initComponents();
-        //darEsteticaTablas();
+        db = null;
+        resultado = null;
         modeloTablaHoras = (DefaultTableModel) tablaHoras.getModel();
+        modeloTablasTareas = (DefaultTableModel) tablaTareas.getModel();
+        fecha = new SimpleDateFormat("dd-MM-yyyy").format(calendario.getDate()); //Obtenermos la fecha actual
+        crearAgenda(fecha);
+        darEsteticaTablas();
+    }
+
+    /**
+     * Metodo para crear la agenda
+     */
+    private void crearAgenda(String fecha) {
+        try {
+            db = new BaseDatos();
+            resultado = db.leerTareas(fecha);
+
+            Object datos[] = new Object[4]; //Numero de campos(columnas) de la consulta
+
+            while (resultado.next()) {
+                for (int i = 0; i < 4; i++) {
+                    datos[i] = resultado.getObject(i + 1); //En el resulset el indice empieza en 1
+                }
+                String tarea = datos[1] + " ---- " + datos[2];
+                tablaTareas.setValueAt(tarea, posicionAgenda(datos[0].toString()), 0); //Insertamos los datos en la fila correspondiente
+                ajustarAjenda(posicionAgenda(datos[0].toString()), convertirDuracion(datos[3].toString())); //Aumentamos el alto de la fila correspondiente en funcion de la duracion.
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        }
     }
     
     /**
+     * Metodo para altura de las filas y estetica
+     * 
+     */
+    private void ajustarAjenda(int posicion, int altura){
+        tablaTareas.setRowHeight(posicion, altura);
+    }
+
+    /**
+     * Metodo para saber la posicion en la agenda de una tarea en funcion de la
+     * hora de inicio.
+     */
+    private int posicionAgenda(String hora) {
+
+        boolean buscar = true;
+        int i = 0;
+
+        while (i < tablaHoras.getRowCount() && buscar) {
+            if (tablaHoras.getValueAt(i, 0).toString().equals(hora)) {
+                buscar = false;
+            }
+            i++;
+        }
+        return i - 1;
+    }
+
+    /**
+     * Metodo para abrir la ventana de nueva tarea
+     */
+    private void nuevaTarea() {
+        try {
+            if (tablaHoras.getSelectedRow() != -1) {
+                Date date = calendario.getDate();
+                fecha = new SimpleDateFormat("dd-MM-yyyy").format(date); //Obtenemos la fecha del calendario en el formato dia mes año
+                NuevaTarea nt = new NuevaTarea(this, rootPaneCheckingEnabled);
+                nt.añadirTiempos(fecha, tablaHoras.getValueAt(tablaHoras.getSelectedRow(), 0).toString()); //Obtengo la fechan y la hora
+                nt.setVisible(true);
+                crearAgenda(fecha);
+            } else {
+                JOptionPane.showMessageDialog(null, "Seleccione una hora para el inicio de la tarea", "Nueva Tarea", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    /**
      * Metodo para mantener enlazada la seleccion entre tablas
      */
-    
-    private void sincornizarSeleccion(String nombreTabla){
-        if(nombreTabla == "tablaHoras"){
+    private void sincornizarSeleccion(String nombreTabla) {
+        if (nombreTabla == "tablaHoras") {
             tablaTareas.changeSelection(tablaHoras.getSelectedRow(), 0, false, false); //Selecciona la misma fila en la otra tabla
-        }else{
+        } else {
             tablaHoras.changeSelection(tablaTareas.getSelectedRow(), 0, false, false);
         }
-            
+
     }
-    
-    private void darEsteticaTablas(){
-        tablaHoras.getTableHeader().setFont(new Font("Garamond", Font.CENTER_BASELINE, 16)); 
-        tablaHoras.getTableHeader().setBackground(Color.lightGray);
-        tablaHoras.getTableHeader().setForeground(Color.RED);
+
+    /**
+     * Metodo para obtener covertir en pixeles la duracion para el alto de las filas
+     * @param duracion
+     * @return 
+     */
+    private int convertirDuracion(String duracion) {
+        int altoFila = tablaHoras.getRowHeight();
+
+        switch (duracion) {
+            case "30 minutos":
+                altoFila = altoFila * 2;
+                break;
+            case "1 hora":
+                altoFila = altoFila * 3;
+                break;
+            case "1 hora 30 minutos":
+                altoFila = altoFila * 4;
+                break;
+            case "2 horas":
+                altoFila = altoFila * 5;
+                break;
+            case "2 horas 30 minutos":
+                altoFila = altoFila * 6;
+                break;
+            case "3 horas":
+                altoFila = altoFila * 7;
+                break;
+            case "3 horas 30 minutos":
+                altoFila = altoFila * 8;
+                break;
+            case "4 horas":
+                altoFila = altoFila * 9;
+                break;
+            default:
+                altoFila = altoFila;
+                break;
+        }
+        
+        return altoFila;
+    }
+
+    /**
+     * *
+     * Metodo para mejorar la presentacion de las tablas
+     */
+    private void darEsteticaTablas() {
+        DefaultTableCellRenderer Alinear = new DefaultTableCellRenderer();
+        Alinear.setHorizontalAlignment(SwingConstants.CENTER);
+        tablaHoras.getColumnModel().getColumn(0).setCellRenderer(Alinear);
+        tablaTareas.getColumnModel().getColumn(0).setCellRenderer(Alinear);
+        
+        
         
     }
 
@@ -90,7 +222,7 @@ public class VentanaInicio extends javax.swing.JFrame {
             }
         };
         tablaHoras = new javax.swing.JTable();
-        jCalendarCombo1 = new org.freixas.jcalendar.JCalendarCombo();
+        calendario = new org.freixas.jcalendar.JCalendarCombo();
         jButton4 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         tablaTareas = new javax.swing.JTable();
@@ -119,6 +251,11 @@ public class VentanaInicio extends javax.swing.JFrame {
         jButton3.setForeground(new java.awt.Color(120, 120, 227));
         jButton3.setText("Nueva Tarea");
         jButton3.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        jButton3.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonPulsado(evt);
+            }
+        });
 
         jButton5.setBackground(new java.awt.Color(204, 255, 204));
         jButton5.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
@@ -222,14 +359,9 @@ public class VentanaInicio extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tablaHoras);
 
-        jCalendarCombo1.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(86, 86, 151), 5), "Calendario", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 11), new java.awt.Color(88, 88, 220))); // NOI18N
-        jCalendarCombo1.setToolTipText("");
-        jCalendarCombo1.setTimeFont(new java.awt.Font("Century Gothic", 0, 14)); // NOI18N
-        jCalendarCombo1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jCalendarCombo1ActionPerformed(evt);
-            }
-        });
+        calendario.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(86, 86, 151), 5), "Calendario", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 11), new java.awt.Color(88, 88, 220))); // NOI18N
+        calendario.setToolTipText("");
+        calendario.setTimeFont(new java.awt.Font("Century Gothic", 0, 14)); // NOI18N
 
         jButton4.setBackground(new java.awt.Color(115, 115, 157));
         jButton4.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
@@ -239,6 +371,8 @@ public class VentanaInicio extends javax.swing.JFrame {
 
         tablaTareas.setBackground(new java.awt.Color(153, 153, 153));
         tablaTareas.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true));
+        tablaTareas.setFont(new java.awt.Font("Sitka Small", 0, 18)); // NOI18N
+        tablaTareas.setForeground(new java.awt.Color(0, 0, 102));
         tablaTareas.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {null},
@@ -303,14 +437,14 @@ public class VentanaInicio extends javax.swing.JFrame {
                 .addGap(22, 22, 22)
                 .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18)
-                .addComponent(jCalendarCombo1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                .addComponent(calendario, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGap(172, 172, 172))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jCalendarCombo1, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(calendario, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
@@ -371,10 +505,6 @@ public class VentanaInicio extends javax.swing.JFrame {
         setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jCalendarCombo1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jCalendarCombo1ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jCalendarCombo1ActionPerformed
-
     private void botonPulsado(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_botonPulsado
         // TODO add your handling code here:
         JButton boton = (JButton) evt.getSource();
@@ -383,15 +513,18 @@ public class VentanaInicio extends javax.swing.JFrame {
             case "Servicios":
                 abrirServicios();
                 break;
+            case "Nueva Tarea":
+                nuevaTarea();
+                break;
         }
     }//GEN-LAST:event_botonPulsado
 
     private void clickRaton(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_clickRaton
         // TODO add your handling code here:
         JTable t = (JTable) evt.getSource();
-        
+
         sincornizarSeleccion(t.getName());
-       
+
     }//GEN-LAST:event_clickRaton
 
     /**
@@ -430,11 +563,11 @@ public class VentanaInicio extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private org.freixas.jcalendar.JCalendarCombo calendario;
     private javax.swing.JPanel fondo;
     private javax.swing.JButton jButton3;
     private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
-    private org.freixas.jcalendar.JCalendarCombo jCalendarCombo1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
