@@ -30,11 +30,13 @@ import jdk.nashorn.internal.parser.DateParser;
  */
 public class VentanaInicio extends javax.swing.JFrame {
 
-    DefaultTableModel modeloTablaHoras;
-    BaseDatos db;
-    ResultSet resultado;
-    DefaultTableModel modeloTablasTareas;
-    String fecha;
+    private DefaultTableModel modeloTablaHoras;
+    private BaseDatos db;
+    private ResultSet resultado;
+    private DefaultTableModel modeloTablasTareas;
+    private String fecha;
+    private int filasEliminadas;
+    private int filasAEliminar;
 
     /**
      * Creates new form VentanaInicio
@@ -46,6 +48,8 @@ public class VentanaInicio extends javax.swing.JFrame {
         modeloTablaHoras = (DefaultTableModel) tablaHoras.getModel();
         modeloTablasTareas = (DefaultTableModel) tablaTareas.getModel();
         fecha = new SimpleDateFormat("dd-MM-yyyy").format(calendario.getDate()); //Obtenermos la fecha actual
+        filasEliminadas = 0;
+        filasAEliminar = 0;
         crearAgenda(fecha);
         darEsteticaTablas();
     }
@@ -64,20 +68,23 @@ public class VentanaInicio extends javax.swing.JFrame {
                 for (int i = 0; i < 4; i++) {
                     datos[i] = resultado.getObject(i + 1); //En el resulset el indice empieza en 1
                 }
+                filasAEliminar = 0;
                 String tarea = datos[1] + " ---- " + datos[2];
                 tablaTareas.setValueAt(tarea, posicionAgenda(datos[0].toString()), 0); //Insertamos los datos en la fila correspondiente
                 ajustarAjenda(posicionAgenda(datos[0].toString()), convertirDuracion(datos[3].toString())); //Aumentamos el alto de la fila correspondiente en funcion de la duracion.
+                eliminarFilas(filasAEliminar, posicionAgenda(datos[0].toString()));
+                filasEliminadas += filasAEliminar; //Guardamos el numero de filas totales eliminadas.
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
         }
     }
-    
+
     /**
      * Metodo para altura de las filas y estetica
-     * 
+     *
      */
-    private void ajustarAjenda(int posicion, int altura){
+    private void ajustarAjenda(int posicion, int altura) {
         tablaTareas.setRowHeight(posicion, altura);
     }
 
@@ -103,16 +110,27 @@ public class VentanaInicio extends javax.swing.JFrame {
      * Metodo para abrir la ventana de nueva tarea
      */
     private void nuevaTarea() {
+        int fila = tablaTareas.getSelectedRow();
+        int filasLibres = 0;
         try {
-            if (tablaHoras.getSelectedRow() != -1) {
+            if (tablaHoras.getSelectedRow() != -1 && tablaTareas.getValueAt(fila, 0) == null) { //Comprobamos que la fila este libre y que este selec
+                int i = 1;
+                
+                while(i < (tablaTareas.getRowCount() - tablaTareas.getSelectedRow()) &&  tablaTareas.getValueAt(tablaTareas.getSelectedRow() + i, 0) == null ){
+                    filasLibres++;
+                    i++;
+                }
+                
                 Date date = calendario.getDate();
                 fecha = new SimpleDateFormat("dd-MM-yyyy").format(date); //Obtenemos la fecha del calendario en el formato dia mes año
                 NuevaTarea nt = new NuevaTarea(this, rootPaneCheckingEnabled);
-                nt.añadirTiempos(fecha, tablaHoras.getValueAt(tablaHoras.getSelectedRow(), 0).toString()); //Obtengo la fechan y la hora
+                nt.añadirTiempos(fecha, tablaHoras.getValueAt(tablaHoras.getSelectedRow(), 0).toString(), filasLibres); //Obtengo la fechan y la hora
                 nt.setVisible(true);
-                crearAgenda(fecha);
+                if (nt.getAceptar()) { //Controlamos si se ha aceptado la tarea.
+                    crearAgenda(fecha);
+                }
             } else {
-                JOptionPane.showMessageDialog(null, "Seleccione una hora para el inicio de la tarea", "Nueva Tarea", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(null, "Seleccione una hora valida para el inicio de la tarea", "Nueva Tarea", JOptionPane.INFORMATION_MESSAGE);
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
@@ -123,53 +141,88 @@ public class VentanaInicio extends javax.swing.JFrame {
      * Metodo para mantener enlazada la seleccion entre tablas
      */
     private void sincornizarSeleccion(String nombreTabla) {
-        if (nombreTabla == "tablaHoras") {
-            tablaTareas.changeSelection(tablaHoras.getSelectedRow(), 0, false, false); //Selecciona la misma fila en la otra tabla
-        } else {
-            tablaHoras.changeSelection(tablaTareas.getSelectedRow(), 0, false, false);
+        try {
+            if (nombreTabla == "tablaTareas") {
+                int posicion = tablaTareas.getSelectedRow();
+                int numeroFilasSumar = 0;
+                for (int i = 0; i < posicion; i++) {
+                    if (tablaTareas.getValueAt(i, 0) != null) {
+                        String tarea[] = tablaTareas.getValueAt(i, 0).toString().split(" ---- ");
+                        String nombre = tarea[1];
+                        String duracion = db.getDuracionTarea(nombre);
+                        convertirDuracion(duracion);
+                        numeroFilasSumar += filasAEliminar;
+                    }
+                }
+
+                tablaHoras.changeSelection(tablaTareas.getSelectedRow() + numeroFilasSumar, 0, false, false); //Selecciona la misma fila en la otra tabla
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
         }
 
     }
 
     /**
-     * Metodo para obtener covertir en pixeles la duracion para el alto de las filas
+     * Metodo para obtener covertir en pixeles la duracion para el alto de las
+     * filas
+     *
      * @param duracion
-     * @return 
+     * @return
      */
-    private int convertirDuracion(String duracion) {
+    public int convertirDuracion(String duracion) {
         int altoFila = tablaHoras.getRowHeight();
+        filasAEliminar = 0;
 
         switch (duracion) {
             case "30 minutos":
                 altoFila = altoFila * 2;
+                filasAEliminar = 1;
                 break;
             case "1 hora":
                 altoFila = altoFila * 3;
+                filasAEliminar = 2;
                 break;
             case "1 hora 30 minutos":
                 altoFila = altoFila * 4;
+                filasAEliminar = 3;
                 break;
             case "2 horas":
                 altoFila = altoFila * 5;
+                filasAEliminar = 4;
                 break;
             case "2 horas 30 minutos":
                 altoFila = altoFila * 6;
+                filasAEliminar = 5;
                 break;
             case "3 horas":
                 altoFila = altoFila * 7;
+                filasAEliminar = 6;
                 break;
             case "3 horas 30 minutos":
                 altoFila = altoFila * 8;
+                filasAEliminar = 7;
                 break;
             case "4 horas":
                 altoFila = altoFila * 9;
+                filasAEliminar = 8;
                 break;
             default:
                 altoFila = altoFila;
                 break;
         }
-        
+
         return altoFila;
+    }
+
+    /**
+     * Metodo para eliminar filas en funcion de la duracion
+     */
+    private void eliminarFilas(int numeroFilas, int posicionFilaTarea) {
+        for (int i = 0; i < numeroFilas; i++) {
+            modeloTablasTareas.removeRow(posicionFilaTarea + 1);
+        }
+
     }
 
     /**
@@ -181,9 +234,7 @@ public class VentanaInicio extends javax.swing.JFrame {
         Alinear.setHorizontalAlignment(SwingConstants.CENTER);
         tablaHoras.getColumnModel().getColumn(0).setCellRenderer(Alinear);
         tablaTareas.getColumnModel().getColumn(0).setCellRenderer(Alinear);
-        
-        
-        
+
     }
 
     /**
@@ -346,6 +397,7 @@ public class VentanaInicio extends javax.swing.JFrame {
         });
         tablaHoras.setAutoResizeMode(javax.swing.JTable.AUTO_RESIZE_ALL_COLUMNS);
         tablaHoras.setAutoscrolls(false);
+        tablaHoras.setEnabled(false);
         tablaHoras.setFocusable(false);
         tablaHoras.setName("tablaHoras"); // NOI18N
         tablaHoras.setRowHeight(20);

@@ -42,6 +42,23 @@ public class BaseDatos {
     //<editor-fold desc="Metodos">
     
     /**
+     * Metodo para obtener la duracion
+     */
+    public String getDuracionTarea(String servicio) throws Exception{
+        try {
+            String c = "select duracion from SERVICIOS where nombre = '" + servicio +"'";
+            resultado = consulta.executeQuery(c);
+            String duracion = resultado.getString(1);
+            consulta.close();
+            return duracion;
+            
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+        
+    }
+    
+    /**
      * Metodo para leer todas la tareas de la fecha que reciba por paramentro
      */
     public ResultSet leerTareas(String fecha) throws Exception {

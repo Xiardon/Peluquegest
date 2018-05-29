@@ -15,7 +15,9 @@ import javax.swing.UIManager;
  * @author Marcos
  */
 public class NuevaTarea extends javax.swing.JDialog {
-    BaseDatos db;
+    private BaseDatos db;
+    private boolean aceptar;
+    int filasLibres;
     
 
     /**
@@ -25,6 +27,8 @@ public class NuevaTarea extends javax.swing.JDialog {
         super(parent, modal);
         initComponents();
         db = null;
+        aceptar = false;
+        filasLibres = 0;
     }
     
     /**
@@ -37,6 +41,7 @@ public class NuevaTarea extends javax.swing.JDialog {
                 int resultado = db.añadirTarea(fecha.getText(), horaInicio.getText(), nombreCliente.getText(), nombreServicio.getText(), precio.getText(), duracion.getText());
                 if(resultado != 0){
                     this.setVisible(false);
+                    aceptar = true;
                     JOptionPane.showMessageDialog(null, "Tarea creada con exito", "Nueva tarea", JOptionPane.INFORMATION_MESSAGE);
                 }else{
                     JOptionPane.showMessageDialog(null, "No se pudo añadir la nueva tarea", "Nueva tarea", JOptionPane.WARNING_MESSAGE);
@@ -49,14 +54,64 @@ public class NuevaTarea extends javax.swing.JDialog {
         }
     }
     
+    
+    public int convertirDuracion(String duracion) {
+        int filasAEliminar = 0;
+
+        switch (duracion) {
+            case "30 minutos":
+
+                filasAEliminar = 1;
+                break;
+            case "1 hora":
+
+                filasAEliminar = 2;
+                break;
+            case "1 hora 30 minutos":
+
+                filasAEliminar = 3;
+                break;
+            case "2 horas":
+
+                filasAEliminar = 4;
+                break;
+            case "2 horas 30 minutos":
+
+                filasAEliminar = 5;
+                break;
+            case "3 horas":
+
+                filasAEliminar = 6;
+                break;
+            case "3 horas 30 minutos":
+
+                filasAEliminar = 7;
+                break;
+            case "4 horas":
+
+                filasAEliminar = 8;
+                break;
+            default:
+
+                break;
+        }
+        return filasAEliminar;
+    }
+    
+    public boolean getAceptar(){
+        return aceptar;
+    }
+    
     /**
      * Metodo que recibe los datos de la ventana principal.
      * @param fecha
      * @param horaInicio 
      */
-    public void añadirTiempos(String fecha, String horaInicio){
+    public void añadirTiempos(String fecha, String horaInicio, int filasLibres){
         this.fecha.setText(fecha);
         this.horaInicio.setText(horaInicio);
+        this.filasLibres = filasLibres;
+        
     }
 
     /**
@@ -68,10 +123,12 @@ public class NuevaTarea extends javax.swing.JDialog {
             ls.mostrarBotones();
             ls.setVisible(true);
             
-            if(ls.getAceptar()){
+            if(ls.getAceptar() && convertirDuracion(ls.getDuracion()) <= filasLibres  ){
                 nombreServicio.setText(ls.getNombreServicio());
                 precio.setText(ls.getPrecio());
                 duracion.setText(ls.getDuracion());
+            }else{
+                JOptionPane.showMessageDialog(null, "No hay suficientes horas libres para esta tarea", "Nueva Tarea", JOptionPane.WARNING_MESSAGE);
             }
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
