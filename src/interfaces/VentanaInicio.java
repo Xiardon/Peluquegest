@@ -63,21 +63,49 @@ public class VentanaInicio extends javax.swing.JFrame {
             resultado = db.leerTareas(fecha);
 
             Object datos[] = new Object[4]; //Numero de campos(columnas) de la consulta
-
+            int posicion = 0;
             while (resultado.next()) {
                 for (int i = 0; i < 4; i++) {
                     datos[i] = resultado.getObject(i + 1); //En el resulset el indice empieza en 1
                 }
                 filasAEliminar = 0;
+                
+                if(tablaTareas.getSelectedRow() == -1){
+                   posicion = posicionAgenda(datos[0].toString()); 
+                }else{
+                    posicion = tablaTareas.getSelectedRow();
+                }
+                
                 String tarea = datos[1] + " ---- " + datos[2];
-                tablaTareas.setValueAt(tarea, posicionAgenda(datos[0].toString()), 0); //Insertamos los datos en la fila correspondiente
-                ajustarAjenda(posicionAgenda(datos[0].toString()), convertirDuracion(datos[3].toString())); //Aumentamos el alto de la fila correspondiente en funcion de la duracion.
-                eliminarFilas(filasAEliminar, posicionAgenda(datos[0].toString()));
-                filasEliminadas += filasAEliminar; //Guardamos el numero de filas totales eliminadas.
+                
+                if (comprobarSiExisteTarea(datos[2].toString(), datos[0].toString()) == false) {
+                    tablaTareas.setValueAt(tarea, posicion, 0); //Insertamos los datos en la fila correspondiente
+                    ajustarAjenda(posicion, convertirDuracion(datos[3].toString())); //Aumentamos el alto de la fila correspondiente en funcion de la duracion.
+                    eliminarFilas(posicion);
+                    filasEliminadas += filasAEliminar; //Guardamos el numero de filas totales eliminadas.
+                }
+
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción crearagenda!!", JOptionPane.WARNING_MESSAGE);
         }
+    }
+
+    private boolean comprobarSiExisteTarea(String nombreTarea, String horaTarea) {
+        boolean existe = false;
+        for (int i = 0; i < tablaHoras.getRowCount(); i++) {
+
+            if (i < tablaTareas.getRowCount() && tablaTareas.getValueAt(i, 0) != null) {
+                String s[] = tablaTareas.getValueAt(i, 0).toString().split(" ---- ");
+                String nombre = s[1];
+                String hora = tablaHoras.getValueAt(i, 0).toString();
+                if (nombre.equals(nombreTarea) && hora.equals(horaTarea)) {
+                    existe = true;
+                }
+            }
+
+        }
+        return existe;
     }
 
     /**
@@ -96,6 +124,7 @@ public class VentanaInicio extends javax.swing.JFrame {
 
         boolean buscar = true;
         int i = 0;
+        int diferencia = 0;
 
         while (i < tablaHoras.getRowCount() && buscar) {
             if (tablaHoras.getValueAt(i, 0).toString().equals(hora)) {
@@ -103,7 +132,15 @@ public class VentanaInicio extends javax.swing.JFrame {
             }
             i++;
         }
-        return i - 1;
+        i = i - 1;
+
+        if (tablaHoras.getRowCount() > tablaTareas.getRowCount()) {
+            diferencia = tablaHoras.getRowCount() - filasEliminadas;
+            if (i > tablaTareas.getRowCount()) {
+                i = i - diferencia;
+            }
+        }
+        return i;
     }
 
     /**
@@ -115,12 +152,12 @@ public class VentanaInicio extends javax.swing.JFrame {
         try {
             if (tablaHoras.getSelectedRow() != -1 && tablaTareas.getValueAt(fila, 0) == null) { //Comprobamos que la fila este libre y que este selec
                 int i = 1;
-                
-                while(i < (tablaTareas.getRowCount() - tablaTareas.getSelectedRow()) &&  tablaTareas.getValueAt(tablaTareas.getSelectedRow() + i, 0) == null ){
+
+                while (i < (tablaTareas.getRowCount() - tablaTareas.getSelectedRow()) && tablaTareas.getValueAt(tablaTareas.getSelectedRow() + i, 0) == null) {
                     filasLibres++;
                     i++;
                 }
-                
+
                 Date date = calendario.getDate();
                 fecha = new SimpleDateFormat("dd-MM-yyyy").format(date); //Obtenemos la fecha del calendario en el formato dia mes año
                 NuevaTarea nt = new NuevaTarea(this, rootPaneCheckingEnabled);
@@ -176,36 +213,36 @@ public class VentanaInicio extends javax.swing.JFrame {
 
         switch (duracion) {
             case "30 minutos":
+                altoFila = altoFila;
+                filasAEliminar = 0;
+                break;
+            case "1 hora":
                 altoFila = altoFila * 2;
                 filasAEliminar = 1;
                 break;
-            case "1 hora":
+            case "1 hora 30 minutos":
                 altoFila = altoFila * 3;
                 filasAEliminar = 2;
                 break;
-            case "1 hora 30 minutos":
+            case "2 horas":
                 altoFila = altoFila * 4;
                 filasAEliminar = 3;
                 break;
-            case "2 horas":
+            case "2 horas 30 minutos":
                 altoFila = altoFila * 5;
                 filasAEliminar = 4;
                 break;
-            case "2 horas 30 minutos":
+            case "3 horas":
                 altoFila = altoFila * 6;
                 filasAEliminar = 5;
                 break;
-            case "3 horas":
+            case "3 horas 30 minutos":
                 altoFila = altoFila * 7;
                 filasAEliminar = 6;
                 break;
-            case "3 horas 30 minutos":
-                altoFila = altoFila * 8;
-                filasAEliminar = 7;
-                break;
             case "4 horas":
-                altoFila = altoFila * 9;
-                filasAEliminar = 8;
+                altoFila = altoFila * 7;
+                filasAEliminar = 7;
                 break;
             default:
                 altoFila = altoFila;
@@ -218,11 +255,17 @@ public class VentanaInicio extends javax.swing.JFrame {
     /**
      * Metodo para eliminar filas en funcion de la duracion
      */
-    private void eliminarFilas(int numeroFilas, int posicionFilaTarea) {
-        for (int i = 0; i < numeroFilas; i++) {
-            modeloTablasTareas.removeRow(posicionFilaTarea + 1);
+    private void eliminarFilas(int posicion) {
+        try {
+            int i = 0;
+            int filasEliminadas = 0;
+            while (i < filasAEliminar) {
+                modeloTablasTareas.removeRow(posicion + 1);
+                i++;
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción eliminarFilas!!", JOptionPane.WARNING_MESSAGE);
         }
-
     }
 
     /**
@@ -593,16 +636,24 @@ public class VentanaInicio extends javax.swing.JFrame {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel((UIManager.getSystemLookAndFeelClassName()));
                     break;
+
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(VentanaInicio.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VentanaInicio.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(VentanaInicio.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VentanaInicio.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(VentanaInicio.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VentanaInicio.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
+
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(VentanaInicio.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java.util.logging.Logger.getLogger(VentanaInicio.class
+                    .getName()).log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
 

@@ -61,35 +61,35 @@ public class NuevaTarea extends javax.swing.JDialog {
         switch (duracion) {
             case "30 minutos":
 
-                filasAEliminar = 1;
+                filasAEliminar = 0;
                 break;
             case "1 hora":
 
-                filasAEliminar = 2;
+                filasAEliminar = 1;
                 break;
             case "1 hora 30 minutos":
 
-                filasAEliminar = 3;
+                filasAEliminar = 2;
                 break;
             case "2 horas":
 
-                filasAEliminar = 4;
+                filasAEliminar = 3;
                 break;
             case "2 horas 30 minutos":
 
-                filasAEliminar = 5;
+                filasAEliminar = 4;
                 break;
             case "3 horas":
 
-                filasAEliminar = 6;
+                filasAEliminar = 5;
                 break;
             case "3 horas 30 minutos":
 
-                filasAEliminar = 7;
+                filasAEliminar = 6;
                 break;
             case "4 horas":
 
-                filasAEliminar = 8;
+                filasAEliminar = 7;
                 break;
             default:
 
@@ -123,7 +123,7 @@ public class NuevaTarea extends javax.swing.JDialog {
             ls.mostrarBotones();
             ls.setVisible(true);
             
-            if(ls.getAceptar() && convertirDuracion(ls.getDuracion()) <= filasLibres  ){
+            if(ls.getAceptar() && convertirDuracion(ls.getDuracion()) <= filasLibres){ //Comrpuebo que hay suficientes horas libres para la tarea en la agenda.
                 nombreServicio.setText(ls.getNombreServicio());
                 precio.setText(ls.getPrecio());
                 duracion.setText(ls.getDuracion());

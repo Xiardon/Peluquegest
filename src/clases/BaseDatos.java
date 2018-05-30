@@ -65,7 +65,7 @@ public class BaseDatos {
         try {
             String c = "select horaInicio, nombreCliente, nombreServicio, duracion ";
             c += "from TAREAS ";
-            c += "where fecha = '" + fecha + "'";
+            c += "where fecha = '" + fecha + "' order by horaInicio";
             resultado = consulta.executeQuery(c);
             return resultado;
             
