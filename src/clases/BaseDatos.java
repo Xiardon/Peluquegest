@@ -8,7 +8,6 @@ package clases;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.sql.Statement;
 
 /**
@@ -40,24 +39,28 @@ public class BaseDatos {
     }
 
     //<editor-fold desc="Metodos">
-    
     /**
      * Metodo para obtener la duracion
      */
-    public String getDuracionTarea(String servicio) throws Exception{
+    public String getDuracionTarea(String servicio) throws Exception {
         try {
-            String c = "select duracion from SERVICIOS where nombre = '" + servicio +"'";
+            resultado.close();
+            String c = "select duracion from SERVICIOS where nombre = '" + servicio + "'";
             resultado = consulta.executeQuery(c);
-            String duracion = resultado.getString(1);
-            consulta.close();
+            String duracion = "";
+            if (!resultado.isClosed()) {
+                duracion = resultado.getString(1);
+                consulta.close();
+
+            }
             return duracion;
-            
+
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
-        
+
     }
-    
+
     /**
      * Metodo para leer todas la tareas de la fecha que reciba por paramentro
      */
@@ -68,7 +71,7 @@ public class BaseDatos {
             c += "where fecha = '" + fecha + "' order by horaInicio";
             resultado = consulta.executeQuery(c);
             return resultado;
-            
+
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }
@@ -84,7 +87,7 @@ public class BaseDatos {
      * @param precio
      * @param duracion
      */
-    public int añadirTarea(String fecha, String horaInicio, String nombreCliente, String nombreServicio, String precio, String duracion) throws Exception {
+    public int añadirTarea(String fecha, int horaInicio, String nombreCliente, String nombreServicio, String precio, String duracion) throws Exception {
         try {
             String c = "insert into TAREAS values ('" + fecha + "', '" + horaInicio + "', '" + nombreCliente + "', '" + nombreServicio + "', '" + precio + "', '" + duracion + "')";
             int resultado = consulta.executeUpdate(c);

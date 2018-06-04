@@ -62,28 +62,38 @@ public class VentanaInicio extends javax.swing.JFrame {
             db = new BaseDatos();
             resultado = db.leerTareas(fecha);
 
+            System.out.println(tablaTareas.getRowCount());
+            
+            modeloTablasTareas = (DefaultTableModel) tablaTareas.getModel();
+            int row = tablaTareas.getRowCount();
+
+            for (int i = 0; i < row; i++) {
+                System.out.println(tablaTareas.getRowCount());
+                modeloTablasTareas.removeRow(0);
+            }
+
+            for (int i = 0; i < 26; i++) {
+                modeloTablasTareas.addRow(new Object[0]);
+            }
+
             Object datos[] = new Object[4]; //Numero de campos(columnas) de la consulta
             int posicion = 0;
             while (resultado.next()) {
                 for (int i = 0; i < 4; i++) {
                     datos[i] = resultado.getObject(i + 1); //En el resulset el indice empieza en 1
                 }
+
                 filasAEliminar = 0;
-                
-                if(tablaTareas.getSelectedRow() == -1){
-                   posicion = posicionAgenda(datos[0].toString()); 
-                }else{
-                    posicion = tablaTareas.getSelectedRow();
-                }
-                
-                String tarea = datos[1] + " ---- " + datos[2];
-                
-                if (comprobarSiExisteTarea(datos[2].toString(), datos[0].toString()) == false) {
-                    tablaTareas.setValueAt(tarea, posicion, 0); //Insertamos los datos en la fila correspondiente
-                    ajustarAjenda(posicion, convertirDuracion(datos[3].toString())); //Aumentamos el alto de la fila correspondiente en funcion de la duracion.
+                String tarea = datos[1] + "---" + datos[2];
+                posicion = posicionAgenda(datos[0].toString());
+                String duracion = datos[3].toString();
+
+
+                    tablaTareas.setValueAt(tarea, posicion, 0);
+                    ajustarAjenda(posicion, convertirDuracion(duracion));
                     eliminarFilas(posicion);
-                    filasEliminadas += filasAEliminar; //Guardamos el numero de filas totales eliminadas.
-                }
+                    filasEliminadas += filasAEliminar;
+                
 
             }
         } catch (Exception e) {
@@ -96,7 +106,7 @@ public class VentanaInicio extends javax.swing.JFrame {
         for (int i = 0; i < tablaHoras.getRowCount(); i++) {
 
             if (i < tablaTareas.getRowCount() && tablaTareas.getValueAt(i, 0) != null) {
-                String s[] = tablaTareas.getValueAt(i, 0).toString().split(" ---- ");
+                String s[] = tablaTareas.getValueAt(i, 0).toString().split("---");
                 String nombre = s[1];
                 String hora = tablaHoras.getValueAt(i, 0).toString();
                 if (nombre.equals(nombreTarea) && hora.equals(horaTarea)) {
@@ -123,24 +133,26 @@ public class VentanaInicio extends javax.swing.JFrame {
     private int posicionAgenda(String hora) {
 
         boolean buscar = true;
-        int i = 0;
+        int i = 0; // poscion en tabla horas
         int diferencia = 0;
+        int x = 0; // posicion en tabla tareas
 
         while (i < tablaHoras.getRowCount() && buscar) {
-            if (tablaHoras.getValueAt(i, 0).toString().equals(hora)) {
+            String h[] = tablaHoras.getValueAt(i, 0).toString().split(":");
+            String h2 = h[0] + h[1];
+
+            if (h2.equals(hora)) {
                 buscar = false;
             }
             i++;
         }
-        i = i - 1;
-
-        if (tablaHoras.getRowCount() > tablaTareas.getRowCount()) {
-            diferencia = tablaHoras.getRowCount() - filasEliminadas;
-            if (i > tablaTareas.getRowCount()) {
+            if(tablaHoras.getRowCount() > tablaTareas.getRowCount()){
+                diferencia = tablaHoras.getRowCount() - tablaTareas.getRowCount();
                 i = i - diferencia;
             }
-        }
-        return i;
+        
+
+        return i - 1;
     }
 
     /**
@@ -184,7 +196,7 @@ public class VentanaInicio extends javax.swing.JFrame {
                 int numeroFilasSumar = 0;
                 for (int i = 0; i < posicion; i++) {
                     if (tablaTareas.getValueAt(i, 0) != null) {
-                        String tarea[] = tablaTareas.getValueAt(i, 0).toString().split(" ---- ");
+                        String tarea[] = tablaTareas.getValueAt(i, 0).toString().split("---");
                         String nombre = tarea[1];
                         String duracion = db.getDuracionTarea(nombre);
                         convertirDuracion(duracion);
@@ -195,7 +207,7 @@ public class VentanaInicio extends javax.swing.JFrame {
                 tablaHoras.changeSelection(tablaTareas.getSelectedRow() + numeroFilasSumar, 0, false, false); //Selecciona la misma fila en la otra tabla
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepciónsincronizar!!", JOptionPane.WARNING_MESSAGE);
         }
 
     }
@@ -241,7 +253,7 @@ public class VentanaInicio extends javax.swing.JFrame {
                 filasAEliminar = 6;
                 break;
             case "4 horas":
-                altoFila = altoFila * 7;
+                altoFila = altoFila * 8;
                 filasAEliminar = 7;
                 break;
             default:
@@ -258,7 +270,6 @@ public class VentanaInicio extends javax.swing.JFrame {
     private void eliminarFilas(int posicion) {
         try {
             int i = 0;
-            int filasEliminadas = 0;
             while (i < filasAEliminar) {
                 modeloTablasTareas.removeRow(posicion + 1);
                 i++;
@@ -587,9 +598,7 @@ public class VentanaInicio extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(fondo, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 9, Short.MAX_VALUE))
+            .addComponent(fondo, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)

@@ -38,7 +38,11 @@ public class NuevaTarea extends javax.swing.JDialog {
         try {
             db = new BaseDatos();
             if(!nombreServicio.getText().equals("") && !nombreCliente.getText().equals("") ){ //Comprobamos que no esten vacios el cliente ni el servicio.
-                int resultado = db.añadirTarea(fecha.getText(), horaInicio.getText(), nombreCliente.getText(), nombreServicio.getText(), precio.getText(), duracion.getText());
+                String i [] = horaInicio.getText().split(":");
+                String hora = i[0] + i[1];
+                int h = Integer.parseInt(hora);
+                
+                int resultado = db.añadirTarea(fecha.getText(), h, nombreCliente.getText(), nombreServicio.getText(), precio.getText(), duracion.getText());
                 if(resultado != 0){
                     this.setVisible(false);
                     aceptar = true;
