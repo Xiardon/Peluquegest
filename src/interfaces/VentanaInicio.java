@@ -8,6 +8,7 @@ package interfaces;
 import clases.BaseDatos;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
@@ -37,6 +38,9 @@ public class VentanaInicio extends javax.swing.JFrame {
     private String fecha;
     private int filasEliminadas;
     private int filasAEliminar;
+    private Color color1;
+    private Color color2;
+    private Color colorAsigando;
 
     /**
      * Creates new form VentanaInicio
@@ -50,8 +54,12 @@ public class VentanaInicio extends javax.swing.JFrame {
         fecha = new SimpleDateFormat("dd-MM-yyyy").format(calendario.getDate()); //Obtenermos la fecha actual
         filasEliminadas = 0;
         filasAEliminar = 0;
+        color1 = new Color(224, 129, 129);
+        color2 = new Color(211, 211, 137);
+        colorAsigando = null;
         crearAgenda(fecha);
         darEsteticaTablas();
+
     }
 
     /**
@@ -63,7 +71,7 @@ public class VentanaInicio extends javax.swing.JFrame {
             resultado = db.leerTareas(fecha);
 
             System.out.println(tablaTareas.getRowCount());
-            
+
             modeloTablasTareas = (DefaultTableModel) tablaTareas.getModel();
             int row = tablaTareas.getRowCount();
 
@@ -84,16 +92,15 @@ public class VentanaInicio extends javax.swing.JFrame {
                 }
 
                 filasAEliminar = 0;
-                String tarea = datos[1] + "---" + datos[2];
-                posicion = posicionAgenda(datos[0].toString());
+                String tarea = datos[1] + "---" + datos[2]; //Servicio y cliente
+                posicion = posicionAgenda(datos[0].toString()); //Obtenemos la posicion.
                 String duracion = datos[3].toString();
 
-
-                    tablaTareas.setValueAt(tarea, posicion, 0);
-                    ajustarAjenda(posicion, convertirDuracion(duracion));
-                    eliminarFilas(posicion);
-                    filasEliminadas += filasAEliminar;
-                
+                tablaTareas.setValueAt(tarea, posicion, 0);
+                ajustarAjenda(posicion, convertirDuracion(duracion));
+                eliminarFilas(posicion);
+                filasEliminadas += filasAEliminar;
+                darEsteticaTablas();
 
             }
         } catch (Exception e) {
@@ -101,21 +108,9 @@ public class VentanaInicio extends javax.swing.JFrame {
         }
     }
 
-    private boolean comprobarSiExisteTarea(String nombreTarea, String horaTarea) {
-        boolean existe = false;
-        for (int i = 0; i < tablaHoras.getRowCount(); i++) {
-
-            if (i < tablaTareas.getRowCount() && tablaTareas.getValueAt(i, 0) != null) {
-                String s[] = tablaTareas.getValueAt(i, 0).toString().split("---");
-                String nombre = s[1];
-                String hora = tablaHoras.getValueAt(i, 0).toString();
-                if (nombre.equals(nombreTarea) && hora.equals(horaTarea)) {
-                    existe = true;
-                }
-            }
-
+    private void asignarColor(int posicion) {
+        if (color1 == colorAsigando) {
         }
-        return existe;
     }
 
     /**
@@ -146,11 +141,10 @@ public class VentanaInicio extends javax.swing.JFrame {
             }
             i++;
         }
-            if(tablaHoras.getRowCount() > tablaTareas.getRowCount()){
-                diferencia = tablaHoras.getRowCount() - tablaTareas.getRowCount();
-                i = i - diferencia;
-            }
-        
+        if (tablaHoras.getRowCount() > tablaTareas.getRowCount()) {
+            diferencia = tablaHoras.getRowCount() - tablaTareas.getRowCount();
+            i = i - diferencia;
+        }
 
         return i - 1;
     }
@@ -289,6 +283,24 @@ public class VentanaInicio extends javax.swing.JFrame {
         tablaHoras.getColumnModel().getColumn(0).setCellRenderer(Alinear);
         tablaTareas.getColumnModel().getColumn(0).setCellRenderer(Alinear);
 
+        tablaTareas.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() { //para dar color a las celdas
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+                super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, col);
+
+                if (table.getValueAt(row, col) != null) {
+                    if (color1 == colorAsigando) {
+                        setBackground(color2);
+                        colorAsigando = color2;
+                    } else {
+                        setBackground(color1);
+                        colorAsigando = color1;
+                    }
+                }
+                return this;
+            }
+        });
+
     }
 
     /**
@@ -327,10 +339,9 @@ public class VentanaInicio extends javax.swing.JFrame {
             }
         };
         tablaHoras = new javax.swing.JTable();
-        calendario = new org.freixas.jcalendar.JCalendarCombo();
-        jButton4 = new javax.swing.JButton();
         jScrollPane2 = new javax.swing.JScrollPane();
         tablaTareas = new javax.swing.JTable();
+        calendario = new org.freixas.jcalendar.JCalendarCombo();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Peluquegest");
@@ -340,10 +351,13 @@ public class VentanaInicio extends javax.swing.JFrame {
         fondo.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(153, 153, 255), 10, true));
         fondo.setFocusable(false);
 
+        jLabel1.setBackground(new java.awt.Color(216, 185, 248));
         jLabel1.setFont(new java.awt.Font("Garamond", 3, 48)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(0, 153, 153));
+        jLabel1.setForeground(new java.awt.Color(102, 151, 151));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("PELUQUEGEST");
+        jLabel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 153), 5, true));
+        jLabel1.setOpaque(true);
 
         jLabel2.setBackground(new java.awt.Color(204, 204, 255));
         jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/Icono.png"))); // NOI18N
@@ -397,7 +411,7 @@ public class VentanaInicio extends javax.swing.JFrame {
         jPanel2.setBackground(new java.awt.Color(119, 153, 153));
         jPanel2.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(100, 159, 167), 8, true));
 
-        tablaHoras.setBackground(new java.awt.Color(157, 145, 204));
+        tablaHoras.setBackground(new java.awt.Color(177, 172, 198));
         tablaHoras.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true));
         tablaHoras.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
         tablaHoras.setForeground(new java.awt.Color(0, 51, 51));
@@ -465,17 +479,6 @@ public class VentanaInicio extends javax.swing.JFrame {
         });
         jScrollPane1.setViewportView(tablaHoras);
 
-        calendario.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(86, 86, 151), 5), "Calendario", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 11), new java.awt.Color(88, 88, 220))); // NOI18N
-        calendario.setToolTipText("");
-        calendario.setTimeFont(new java.awt.Font("Century Gothic", 0, 14)); // NOI18N
-
-        jButton4.setBackground(new java.awt.Color(115, 115, 157));
-        jButton4.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
-        jButton4.setForeground(new java.awt.Color(0, 102, 0));
-        jButton4.setText("<<");
-        jButton4.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
-
-        tablaTareas.setBackground(new java.awt.Color(153, 153, 153));
         tablaTareas.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 1, true));
         tablaTareas.setFont(new java.awt.Font("Sitka Small", 0, 18)); // NOI18N
         tablaTareas.setForeground(new java.awt.Color(0, 0, 102));
@@ -539,24 +542,19 @@ public class VentanaInicio extends javax.swing.JFrame {
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(0, 0, Short.MAX_VALUE))
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(22, 22, 22)
-                .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(calendario, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addGap(172, 172, 172))
         );
         jPanel2Layout.setVerticalGroup(
             jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel2Layout.createSequentialGroup()
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(calendario, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 42, Short.MAX_VALUE)
+                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                 .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
                     .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 522, Short.MAX_VALUE)
                     .addComponent(jScrollPane2)))
         );
+
+        calendario.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(86, 86, 151), 5), "Calendario", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 11), new java.awt.Color(88, 88, 220))); // NOI18N
+        calendario.setToolTipText("");
+        calendario.setTimeFont(new java.awt.Font("Century Gothic", 0, 14)); // NOI18N
 
         javax.swing.GroupLayout fondoLayout = new javax.swing.GroupLayout(fondo);
         fondo.setLayout(fondoLayout);
@@ -568,37 +566,44 @@ public class VentanaInicio extends javax.swing.JFrame {
                         .addContainerGap()
                         .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(fondoLayout.createSequentialGroup()
-                        .addGap(8, 8, 8)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addContainerGap()
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(fondoLayout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 505, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addGap(25, 25, 25)
+                        .addComponent(calendario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addGap(8, 8, 8)
+                .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addGroup(fondoLayout.createSequentialGroup()
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 561, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(0, 0, Short.MAX_VALUE)))
                 .addContainerGap())
         );
         fondoLayout.setVerticalGroup(
             fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(fondoLayout.createSequentialGroup()
-                .addContainerGap()
                 .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(fondoLayout.createSequentialGroup()
-                        .addComponent(jLabel2)
+                        .addContainerGap()
+                        .addComponent(jLabel2))
+                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(fondoLayout.createSequentialGroup()
+                        .addGap(53, 53, 53)
+                        .addComponent(calendario, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                         .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(167, 167, 167))
-                    .addGroup(fondoLayout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 75, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
+                        .addGap(20, 20, 20))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, fondoLayout.createSequentialGroup()
+                        .addGap(18, 18, 18)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(fondo, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE)
+            .addComponent(fondo, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 807, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -678,7 +683,6 @@ public class VentanaInicio extends javax.swing.JFrame {
     private org.freixas.jcalendar.JCalendarCombo calendario;
     private javax.swing.JPanel fondo;
     private javax.swing.JButton jButton3;
-    private javax.swing.JButton jButton4;
     private javax.swing.JButton jButton5;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

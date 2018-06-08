@@ -74,11 +74,16 @@ public class ListaServicios extends javax.swing.JDialog {
      */
     private void aceptarSerevicio() {
         try {
-            nombreServicio = tablaServicios.getValueAt(tablaServicios.getSelectedRow(), 0).toString();
-            precio = tablaServicios.getValueAt(tablaServicios.getSelectedRow(), 1).toString();
-            duracion = tablaServicios.getValueAt(tablaServicios.getSelectedRow(), 2).toString();
-            aceptarNuevo = true;
-            this.setVisible(false);
+            if (tablaServicios.getSelectedRow() != -1) {
+                nombreServicio = tablaServicios.getValueAt(tablaServicios.getSelectedRow(), 0).toString();
+                precio = tablaServicios.getValueAt(tablaServicios.getSelectedRow(), 1).toString();
+                duracion = tablaServicios.getValueAt(tablaServicios.getSelectedRow(), 2).toString();
+                aceptarNuevo = true;
+                this.setVisible(false);
+            }else{
+                JOptionPane.showMessageDialog(null, "No se ha seleccionado ningun servicio de la lista", "Seleccionar servicio", JOptionPane.WARNING_MESSAGE);
+            }
+
         } catch (Exception e) {
             JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
         }
@@ -317,7 +322,9 @@ public class ListaServicios extends javax.swing.JDialog {
                     .addGroup(jPanel1Layout.createSequentialGroup()
                         .addComponent(btnEliminar, javax.swing.GroupLayout.PREFERRED_SIZE, 67, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(0, 0, Short.MAX_VALUE))
-                    .addComponent(btnSeleccionar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
+                        .addGap(0, 0, Short.MAX_VALUE)
+                        .addComponent(btnSeleccionar, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap())
         );
 
