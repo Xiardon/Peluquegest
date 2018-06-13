@@ -29,19 +29,58 @@ public class BaseDatos {
     public BaseDatos() throws Exception {
         try {
             Class.forName("org.sqlite.JDBC"); //Resitramos el driver de SQlite para la conexion
-            conexion = DriverManager.getConnection("jdbc:sqlite:Peluquegest.db"); //Conectamos a la base de datos
-            consulta = conexion.createStatement();
+            conectarBaseDatos();
             resultado = null;
-            System.out.println(conexion.getSchema());
+
         } catch (Exception ex) {
-            throw new Exception("No se puede conectar a la base de datos");
+            throw new Exception(ex.getMessage());
         }
     }
 
     //<editor-fold desc="Metodos">
-    /**
-     * Metodo para obtener la duracion
-     */
+    private void conectarBaseDatos() throws Exception {
+        try {
+            conexion = DriverManager.getConnection("jdbc:sqlite:Peluquegest.db"); //Conectamos a la base de datos
+            if (conexion != null) {
+                consulta = conexion.createStatement();
+                crearTablas();
+            }
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+
+    }
+
+    private void crearTablas() throws Exception {
+        try {
+            String c = "CREATE TABLE IF NOT EXISTS SERVICIOS (";
+            c += "id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT UNIQUE, ";
+            c += "nombre TEXT (50) NOT NULL, ";
+            c += "precio REAL NOT NULL, ";
+            c += "duracion TEXT (50) NOT NULL ";
+            c += ");";
+
+            consulta.execute(c);
+            consulta.close();
+            
+            c = "CREATE TABLE IF NOT EXISTS TAREAS (\n"
+                    + "	fecha	TEXT ( 50 ) NOT NULL,\n"
+                    + "	horaInicio	INTEGER NOT NULL,\n"
+                    + "	nombreCliente	TEXT ( 50 ) NOT NULL,\n"
+                    + "	nombreServicio	TEXT ( 50 ) NOT NULL,\n"
+                    + "	precio	TEXT ( 50 ) NOT NULL,\n"
+                    + "	duracion	TEXT ( 50 ) NOT NULL\n"
+                    + ");";
+
+            consulta.execute(c);
+            consulta.close();
+
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+            
+        }
+    }
+
     public String getDuracionTarea(String servicio) throws Exception {
         try {
             resultado.close();
@@ -55,6 +94,17 @@ public class BaseDatos {
             }
             return duracion;
 
+        } catch (Exception e) {
+            throw new Exception(e.getMessage());
+        }
+
+    }
+
+    public int eliminarTarea(String fecha, int horaInicio) throws Exception {
+        try {
+            String c = "delete from TAREAS where fecha = '" + fecha + "' and horaInicio = " + horaInicio + "";
+            int resultado = consulta.executeUpdate(c);
+            return resultado;
         } catch (Exception e) {
             throw new Exception(e.getMessage());
         }

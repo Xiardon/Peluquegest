@@ -10,12 +10,15 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
+import java.awt.Image;
+import java.awt.Toolkit;
 import java.sql.ResultSet;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.Date;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
 import javax.swing.JTable;
@@ -57,8 +60,45 @@ public class VentanaInicio extends javax.swing.JFrame {
         color1 = new Color(224, 129, 129);
         color2 = new Color(211, 211, 137);
         colorAsigando = null;
+        this.setIconImage(new ImageIcon(getClass().getResource("../imagenes/Icono.png")).getImage());
         crearAgenda(fecha);
         darEsteticaTablas();
+
+    }
+
+
+    private void cambiarFecha() {
+        try {
+             fecha = new SimpleDateFormat("dd-MM-yyyy").format(calendario.getDate());
+            crearAgenda(fecha);
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        }
+    }
+
+    /**
+     * Metodo para eliminar tareas
+     */
+    private void eliminarTarea() {
+        try {
+            if (tablaTareas.getValueAt(tablaTareas.getSelectedRow(), 0) != null) {
+                String h[] = tablaHoras.getValueAt(tablaHoras.getSelectedRow(), 0).toString().split(":");
+                String h2 = h[0] + h[1];
+                int hora = Integer.parseInt(h2);
+
+                if (db.eliminarTarea(fecha, hora) != 0) {
+                    JOptionPane.showMessageDialog(null, "Tarea eliminada", "Eliminar tarea", JOptionPane.INFORMATION_MESSAGE);
+                    crearAgenda(fecha);
+                } else {
+                    JOptionPane.showMessageDialog(null, "No se ha eliminado la tarea", "Eliminar tarea", JOptionPane.WARNING_MESSAGE);
+                }
+
+            } else {
+                JOptionPane.showMessageDialog(null, "Tiene que seleccionar una tarea de la agenda", "Eliminar tarea", JOptionPane.WARNING_MESSAGE);
+            }
+        } catch (Exception e) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
+        }
 
     }
 
@@ -104,12 +144,7 @@ public class VentanaInicio extends javax.swing.JFrame {
 
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción crearagenda!!", JOptionPane.WARNING_MESSAGE);
-        }
-    }
-
-    private void asignarColor(int posicion) {
-        if (color1 == colorAsigando) {
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción!!", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -269,7 +304,7 @@ public class VentanaInicio extends javax.swing.JFrame {
                 i++;
             }
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción eliminarFilas!!", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, e.getMessage(), "Excepción eliminar!!", JOptionPane.WARNING_MESSAGE);
         }
     }
 
@@ -331,6 +366,7 @@ public class VentanaInicio extends javax.swing.JFrame {
         jPanel1 = new javax.swing.JPanel();
         jButton3 = new javax.swing.JButton();
         jButton5 = new javax.swing.JButton();
+        botEliTar = new javax.swing.JButton();
         jPanel2 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         tablaHoras = new javax.swing.JTable(){
@@ -345,22 +381,24 @@ public class VentanaInicio extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("Peluquegest");
+        setIconImage(getIconImage());
         setResizable(false);
 
-        fondo.setBackground(new java.awt.Color(154, 186, 243));
+        fondo.setBackground(new java.awt.Color(204, 204, 255));
         fondo.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(153, 153, 255), 10, true));
         fondo.setFocusable(false);
 
-        jLabel1.setBackground(new java.awt.Color(216, 185, 248));
-        jLabel1.setFont(new java.awt.Font("Garamond", 3, 48)); // NOI18N
-        jLabel1.setForeground(new java.awt.Color(102, 151, 151));
+        jLabel1.setBackground(new java.awt.Color(192, 236, 236));
+        jLabel1.setFont(new java.awt.Font("Copperplate Gothic Light", 3, 48)); // NOI18N
+        jLabel1.setForeground(new java.awt.Color(0, 102, 0));
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
         jLabel1.setText("PELUQUEGEST");
-        jLabel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 255, 153), 5, true));
+        jLabel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(0, 102, 102), 5, true));
         jLabel1.setOpaque(true);
 
         jLabel2.setBackground(new java.awt.Color(204, 204, 255));
-        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/Icono.png"))); // NOI18N
+        jLabel2.setIcon(new javax.swing.ImageIcon(getClass().getResource("/imagenes/barberia(1).png"))); // NOI18N
+        jLabel2.setPreferredSize(new java.awt.Dimension(200, 200));
 
         jPanel1.setBackground(new java.awt.Color(173, 207, 173));
         jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 255, 204), 5, true));
@@ -387,6 +425,18 @@ public class VentanaInicio extends javax.swing.JFrame {
             }
         });
 
+        botEliTar.setBackground(new java.awt.Color(204, 255, 204));
+        botEliTar.setFont(new java.awt.Font("Century Gothic", 1, 14)); // NOI18N
+        botEliTar.setForeground(new java.awt.Color(120, 120, 227));
+        botEliTar.setText("Eliminar Tarea");
+        botEliTar.setToolTipText("");
+        botEliTar.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(102, 102, 255)));
+        botEliTar.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                botonPulsado(evt);
+            }
+        });
+
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
@@ -394,18 +444,28 @@ public class VentanaInicio extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jButton3, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE))
+                    .addComponent(jButton5, javax.swing.GroupLayout.DEFAULT_SIZE, 176, Short.MAX_VALUE)
+                    .addComponent(jButton3, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addContainerGap())
+            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addContainerGap()
+                    .addComponent(botEliTar, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                    .addContainerGap()))
         );
         jPanel1Layout.setVerticalGroup(
             jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(116, 116, 116)
+                .addGap(67, 67, 67)
                 .addComponent(jButton3, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(30, 30, 30)
+                .addGap(79, 79, 79)
                 .addComponent(jButton5, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addContainerGap(101, Short.MAX_VALUE))
+            .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(jPanel1Layout.createSequentialGroup()
+                    .addGap(126, 126, 126)
+                    .addComponent(botEliTar, javax.swing.GroupLayout.PREFERRED_SIZE, 37, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addContainerGap(158, Short.MAX_VALUE)))
         );
 
         jPanel2.setBackground(new java.awt.Color(119, 153, 153));
@@ -552,9 +612,15 @@ public class VentanaInicio extends javax.swing.JFrame {
                     .addComponent(jScrollPane2)))
         );
 
+        calendario.setBackground(new java.awt.Color(255, 204, 204));
         calendario.setBorder(javax.swing.BorderFactory.createTitledBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(86, 86, 151), 5), "Calendario", javax.swing.border.TitledBorder.DEFAULT_JUSTIFICATION, javax.swing.border.TitledBorder.DEFAULT_POSITION, new java.awt.Font("Tahoma", 0, 11), new java.awt.Color(88, 88, 220))); // NOI18N
         calendario.setToolTipText("");
         calendario.setTimeFont(new java.awt.Font("Century Gothic", 0, 14)); // NOI18N
+        calendario.addDateListener(new org.freixas.jcalendar.DateListener() {
+            public void dateChanged(org.freixas.jcalendar.DateEvent evt) {
+                fechaCambiada(evt);
+            }
+        });
 
         javax.swing.GroupLayout fondoLayout = new javax.swing.GroupLayout(fondo);
         fondo.setLayout(fondoLayout);
@@ -563,39 +629,35 @@ public class VentanaInicio extends javax.swing.JFrame {
             .addGroup(fondoLayout.createSequentialGroup()
                 .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(fondoLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 124, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 251, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 524, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(fondoLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(fondoLayout.createSequentialGroup()
-                        .addGap(25, 25, 25)
-                        .addComponent(calendario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(8, 8, 8)
-                .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addGroup(fondoLayout.createSequentialGroup()
-                        .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 561, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+                        .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(fondoLayout.createSequentialGroup()
+                                .addGap(25, 25, 25)
+                                .addComponent(calendario, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                            .addGroup(fondoLayout.createSequentialGroup()
+                                .addContainerGap()
+                                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)))
+                .addGap(14, 14, 14))
         );
         fondoLayout.setVerticalGroup(
             fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(fondoLayout.createSequentialGroup()
+                .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 243, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
                 .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(fondoLayout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel2))
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 169, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGroup(fondoLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(fondoLayout.createSequentialGroup()
-                        .addGap(53, 53, 53)
+                        .addGap(32, 32, 32)
                         .addComponent(calendario, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(20, 20, 20))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, fondoLayout.createSequentialGroup()
-                        .addGap(18, 18, 18)
+                        .addGap(62, 62, 62)
+                        .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addGroup(fondoLayout.createSequentialGroup()
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))))
         );
 
@@ -607,7 +669,7 @@ public class VentanaInicio extends javax.swing.JFrame {
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(fondo, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            .addComponent(fondo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
         );
 
         pack();
@@ -625,6 +687,10 @@ public class VentanaInicio extends javax.swing.JFrame {
             case "Nueva Tarea":
                 nuevaTarea();
                 break;
+
+            case "Eliminar Tarea":
+                eliminarTarea();
+                break;
         }
     }//GEN-LAST:event_botonPulsado
 
@@ -635,6 +701,11 @@ public class VentanaInicio extends javax.swing.JFrame {
         sincornizarSeleccion(t.getName());
 
     }//GEN-LAST:event_clickRaton
+
+    private void fechaCambiada(org.freixas.jcalendar.DateEvent evt) {//GEN-FIRST:event_fechaCambiada
+        // TODO add your handling code here:
+        cambiarFecha();
+    }//GEN-LAST:event_fechaCambiada
 
     /**
      * @param args the command line arguments
@@ -680,6 +751,7 @@ public class VentanaInicio extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JButton botEliTar;
     private org.freixas.jcalendar.JCalendarCombo calendario;
     private javax.swing.JPanel fondo;
     private javax.swing.JButton jButton3;
